@@ -1,13 +1,16 @@
 const express = require("express");
 const app = express();
 const connectDB = require("./config/database")
-const { adminAuth } = require("../src/middlewares/auth")
-const port = 9526;
+const { userAuth } = require("../src/middlewares/auth")
 const dotenv = require("dotenv")
 const { validationSignUp } = require("./utils/validation")
 dotenv.config()
 const bcrypt = require("bcrypt")
+const cookieParser = require("cookie-parser");
+const jwt=require("jsonwebtoken")
 
+
+app.use(cookieParser());
 const User = require("./models/user")
 app.use(express.json());
 
@@ -57,12 +60,28 @@ app.post("/login", async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password)
         if (!isMatch) {
             throw new Error("invalid credentials")
+        }else{
+
+
+            const token=jwt.sign({id:user._id},process.env.JWT_SECRET,{expiresIn:"1h"})       
+            res.cookie("token",token)
+            res.send("login success")
         }
-        res.send("login success")
     } catch (err) {
         res.status(500).send("something went wrong "+ err.message)
     }
 })
+
+
+app.get("/profile",userAuth, async(req, res) => {
+    try{
+    const user=req.user
+    res.send("profile route works")
+}catch(err){
+    res.status(500).send("something went wrong "+ err.message)
+}
+})
+
 
 app.get("/feed", async (req, res) => {
     const userEmail = req.body.emailId
