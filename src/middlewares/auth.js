@@ -1,6 +1,7 @@
 const jwt=require("jsonwebtoken")
 const User=require("../models/user")
 
+
 const userAuth= async (req,res,next)=>{
 try{
 const cookies=req.cookies;
@@ -8,7 +9,7 @@ const{token}=cookies;
 if(!token){
     throw new Error("unauthenticated user no token")
 }
-const decoded=jwt.verify(token,process.env.JWT_SECRET)
+const decoded=jwt.verify(token,process.env.JWT_SECRET,{expiresIn:"1h"})
 const {id}=decoded
 const user=await User.findById({_id:id})
 if(!user){
